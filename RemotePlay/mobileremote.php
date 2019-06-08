@@ -18,6 +18,7 @@ if (isset($_GET['comm']) && isset($_GET['rid'])){
 	<meta name="viewport" content="width=device-width, initial-scale=0.9, shrink-to-fit=no">
 	<script src="../script/jquery.min.js"></script>
 	<script src="../script/ao_module.js"></script>
+	<link rel="manifest" href="manifest.json">
 	<style>
 	body{
 		background-color:#0c0c0c;
@@ -44,7 +45,9 @@ if (isset($_GET['comm']) && isset($_GET['rid'])){
         <div class="sixteen wide column">
 			<p class="white">Target RemotePlay ID</p>
 			<div class="ts basic mini fluid input">
-				<input id="remoteID" class="white" type="text">
+				<select class="ts basic dropdown" id="remoteID" style="background: black;color: white;width: 100%">
+					<option>Scanning...</option>
+				</select>
 			</div>
 		</div>
     </div>
@@ -116,11 +119,8 @@ if (isset($_GET['comm']) && isset($_GET['rid'])){
 
 /* end */
 
-
-
-
 var rid = "";
-ao_module_setWindowSize(500,320);
+ao_module_setWindowSize(347,560);
 $("#vol").on("change",function(){
 	sendCommand("setVol",$(this).val());
 });
@@ -210,10 +210,19 @@ function sendCommand(comm,value){
 
 $(document).ready(function(){
 	var previousRemoteID = ao_module_getStorage("remoteplay","remoteID");
-	if (previousRemoteID !== undefined){
-		$("#remoteID").val(previousRemoteID);
-		rid = previousRemoteID;
-	}
+	$.get("opr.php?opr=scanalive",function(data){
+		var obj = JSON.parse(data);
+		$("#remoteID").html("");
+		$("#remoteID").append($("<option></option>").attr("value", "").text("Not selected"));
+		$.each( obj, function( key, value ) {
+			$("#remoteID").append($("<option></option>").attr("value", value).text(value));
+		});
+		$("#remoteID").val("");
+		if (previousRemoteID !== undefined && $("#remoteID option[value='" + previousRemoteID + "']").length > 0){
+			$("#remoteID").val(previousRemoteID);
+			rid = previousRemoteID;
+		}
+	});
 });
 </script>
 </body>

@@ -18,6 +18,7 @@ if (isset($_GET['comm']) && isset($_GET['rid'])){
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<script src="../script/jquery.min.js"></script>
 	<script src="../script/ao_module.js"></script>
+	<link rel="manifest" href="manifest.json">
 	<style>
 	body{
 		background-color:#0c0c0c;
@@ -37,7 +38,9 @@ if (isset($_GET['comm']) && isset($_GET['rid'])){
 </div>
 	<p class="white">Target RemotePlay ID</p>
 	<div class="ts basic mini fluid input">
-		<input id="remoteID" class="white" type="text">
+		<select class="ts basic dropdown" id="remoteID" style="background: black;color: white;width: 100%">
+			<option>Scanning...</option>
+		</select>
 	</div>
 	<p class="white">Volume Control (Min <--> Max)</p>
 	<div class="ts slider">
@@ -47,9 +50,10 @@ if (isset($_GET['comm']) && isset($_GET['rid'])){
 	<div class="ts separated mini buttons">
 		<button class="ts basic white button" onClick="play();"><i class="play icon"></i>Play</button>
 		<button class="ts basic white button" onClick="pause();"><i class="pause icon"></i>Pause</button>
-		<button class="ts basic white button" onClick="bwd();"><i class="play icon"></i>Back forward</button>
-		<button class="ts basic white button" onClick="fwd();"><i class="play icon"></i>Fast forward</button>
-		<button class="ts basic white button" onClick="speedincrease();"><i class="play icon"></i>Speed increase</button>
+		<button class="ts basic white button" onClick="bwd();"><i class="backward icon"></i>Backward</button>
+		<button class="ts basic white button" onClick="fwd();"><i class="forward icon"></i>Forward</button>
+		<button class="ts basic white button" onClick="fbwd();"><i class="fast backward icon"></i>Fast backward</button>
+		<button class="ts basic white button" onClick="ffwd();"><i class="fast forward icon"></i>Fast forward</button>
 		<button class="ts basic white button" onClick="stop();"><i class="stop icon"></i>Stop</button>
 		<button class="ts basic white button" onClick="mute();"><i class="volume off icon"></i>Mute</button>
 		<button class="ts basic white button" onClick="reset();"><i class="stop icon"></i>Reset</button>
@@ -57,7 +61,7 @@ if (isset($_GET['comm']) && isset($_GET['rid'])){
 </div>
 <script>
 var rid = "";
-ao_module_setWindowSize(500,320);
+ao_module_setWindowSize(1000,340);
 $("#vol").on("change",function(){
 	sendCommand("setVol",$(this).val());
 });
@@ -79,19 +83,40 @@ function fwd(){
 	sendCommand("fwd","");
 }
 
-var speedincreaseing = false;
-function speedincrease(){
-	if(speedincreaseing){
+var ffwding = false;
+function ffwd(){
+	if(ffwding){
 		clearInterval(timer_1);
-		speedincreaseing = false;
+		ffwding = false;
+		$("button").removeAttr("disabled");
+		$("#vol").removeAttr("disabled");
 	}else{
 	  timer_1 = setInterval(fwd, 1000);
-	  speedincreaseing = true;
+	  ffwding = true;
+	  $("#vol").attr("disabled","disabled");
+	  $("button").attr("disabled","disabled");
+	  $(".fast.forward.icon").parent().removeAttr("disabled");
 	}
 }
 
 function bwd(){
 	sendCommand("bwd","");
+}
+
+var fbwding = false;
+function fbwd(){
+	if(fbwding){
+		clearInterval(timer_1);
+		fbwding = false;
+		$("button").removeAttr("disabled");
+		$("#vol").removeAttr("disabled");
+	}else{
+	  timer_1 = setInterval(bwd, 1000);
+	  fbwding = true;
+	  $("#vol").attr("disabled","disabled");
+	  $("button").attr("disabled","disabled");
+	  $(".fast.backward.icon").parent().removeAttr("disabled");
+	}
 }
 
 function stop(){
@@ -118,10 +143,19 @@ function sendCommand(comm,value){
 
 $(document).ready(function(){
 	var previousRemoteID = ao_module_getStorage("remoteplay","remoteID");
-	if (previousRemoteID !== undefined){
-		$("#remoteID").val(previousRemoteID);
-		rid = previousRemoteID;
-	}
+	$.get("opr.php?opr=scanalive",function(data){
+		var obj = JSON.parse(data);
+		$("#remoteID").html("");
+		$("#remoteID").append($("<option></option>").attr("value", "").text("Not selected"));
+		$.each( obj, function( key, value ) {
+			$("#remoteID").append($("<option></option>").attr("value", value).text(value));
+		});
+		$("#remoteID").val("");
+		if (previousRemoteID !== undefined && $("#remoteID option[value='" + previousRemoteID + "']").length > 0){
+			$("#remoteID").val(previousRemoteID);
+			rid = previousRemoteID;
+		}
+	});
 });
 </script>
 </body>

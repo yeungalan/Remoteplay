@@ -63,6 +63,7 @@ if(!$valid){
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<script src="../script/jquery.min.js"></script>
 	<script src="../script/ao_module.js"></script>
+	<link rel="manifest" href="manifest.json">
 	<style>
 		body{
 			background-color:#0c0c0c;
@@ -87,7 +88,9 @@ if(!$valid){
 	<hr>
 	<p class="white">Target RemotePlay ID</p>
 	<div class="ts basic mini fluid input">
-		<input id="remoteID" class="white" type="text">
+		<select class="ts basic dropdown" id="remoteID" style="background: black;color: white;width: 100%">
+			<option>Scanning...</option>
+		</select>
 	</div>
 	<br><p class="white">Filename</p>
 	<div class="ts basic mini fluid input">
@@ -104,10 +107,19 @@ if(!$valid){
 </div>
 	<script>
 	$(document).ready(function(){
-		var previousRemoteID = ao_module_getStorage("remoteplay","remoteID");
-		if (previousRemoteID !== undefined){
-			$("#remoteID").val(previousRemoteID);
-		}
+		$.get("opr.php?opr=scanalive",function(data){
+				var obj = JSON.parse(data);
+				$("#remoteID").html("");
+				$("#remoteID").append($("<option></option>").attr("value", "").text("Not selected"));
+				$.each( obj, function( key, value ) {
+					$("#remoteID").append($("<option></option>").attr("value", value).text(value));
+				});
+				$("#remoteID").val("");
+				var previousRemoteID = ao_module_getStorage("remoteplay","remoteID");
+				if (previousRemoteID !== undefined && $("#remoteID option[value='" + previousRemoteID + "']").length > 0){
+					$("#remoteID").val(previousRemoteID);
+				}
+			});
 	});
 	var rid = $("#rid").text().trim();
 	ao_module_setWindowSize(385,420);

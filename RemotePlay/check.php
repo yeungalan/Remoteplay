@@ -1,6 +1,15 @@
 <?php
 include_once("../auth.php");
 if (isset($_GET['rid'])){
+	touch("data/" . $_GET['rid'] . ".alive");
+	$alives = scandir("data/");
+	foreach($alives as $file){
+       $time = filectime("data/".$file);
+        if($time + 30 <= time() && $file !== ".." && $file !== "."){
+                unlink("data/".$file);
+        }
+    }
+	
 	if (file_exists("data/" . $_GET['rid'] . ".inf")){
 		$data = file_get_contents("data/" . $_GET['rid'] . ".inf");
 		$data = explode(",",$data);

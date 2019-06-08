@@ -11,6 +11,9 @@ if (isset($_GET['filepath'])){
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<script src="../script/jquery.min.js"></script>
 	<script src="../script/ao_module.js"></script>
+	<link rel="manifest" href="manifest.json">
+
+	
 	<style>
 	body{
 		background-color:#0c0c0c;
@@ -48,7 +51,7 @@ var audio = new Audio("");
 
 loadScreen();
 var rid = $("#rid").text().trim();
-ao_module_setWindowSize(385,520);
+ao_module_setWindowSize(395,520);
 ao_module_setWindowTitle("RemotePlay");
 ao_module_setWindowIcon("feed");
 if (ao_module_virtualDesktop){
@@ -69,66 +72,69 @@ function check(){
 				console.log(fileinfo[1]);
 
 						if (fileinfo[0] == "fopen"){
-							audio.pause();
-							audio.currentTime = 0;
-        					//open the given filepath
-							if(fileinfo[1].indexOf(".jpg") > 0){
-								
-								$("body").html('<img src="' + fileinfo[1] + '" style="height: 100%;display: block;margin-left: auto;margin-right: auto;"></img');
-								currDisplay = "image";
-								
-							}else if(fileinfo[1].indexOf(".mp4") > 0){
-								
-								$("body").html('<video autoplay loop id="video" style="height: 100%;display: block;margin-left: auto;margin-right: auto;"><source src="' + fileinfo[1] + '" type="video/mp4"></video><div class="ts snackbar"><div class="content"></div></div>');
-								video = document.querySelector('video');
-								var promise = video.play();
-
-								if (promise !== undefined) {
-								  promise.then(_ => {
-								  }).catch(error => {
-									video.muted = true;
-									video.play();
-									ts('.snackbar').snackbar({
-										content: 'Due to browser restricton, this video has been muted.',
-										action: '',
-										actionEmphasis: 'negative',
-									});
-									
-								  });
-								}
-
-								currDisplay = "video";
-								video = document.getElementById("video");
-								
-							}else{
-								
-								loadScreen();
-								audio.volume = localStorage.getItem("global_volume");
-								audio.loop = true;
+							$.get("opr.php?opr=mime&file=" + fileinfo[1],function(filetype){
 								audio.pause();
 								audio.currentTime = 0;
-								audio.src = fileinfo[1];
-								audio.play();
-								
-								var promise = audio.play();
-								if (promise !== undefined) {
-								  promise.then(_ => {
-								  }).catch(error => {
-									audio.muted = true;
-									audio.play();
-									ts('.snackbar').snackbar({
-										content: 'Due to browser restricton, audio can\'t stream to this device',
-										action: '',
-										actionEmphasis: 'negative',
-									});
-									//alert("Error");
-								  });
-								}
-								
-								currDisplay = "audio";
-							}
-        				    ao_module_setWindowSize(800,800);
-        				    
+								//open the given filepath
+								if(filetype == "image"){
+									
+									$("body").html('<img src="' + fileinfo[1] + '" style="height: 100%;display: block;margin-left: auto;margin-right: auto;"></img');
+									currDisplay = "image";
+									ao_module_setWindowSize(800,800);
+									
+								}else if(filetype == "video"){
+									
+									$("body").html('<video autoplay loop id="video" style="height: 100%;display: block;margin-left: auto;margin-right: auto;width: 100%;"><source src="' + fileinfo[1] + '" type="video/mp4"></video><div class="ts snackbar"><div class="content"></div></div>');
+									video = document.querySelector('video');
+									var promise = video.play();
+
+									if (promise !== undefined) {
+									  promise.then(_ => {
+									  }).catch(error => {
+										video.muted = true;
+										video.play();
+										ts('.snackbar').snackbar({
+											content: 'Due to browser restricton, this video has been muted.',
+											action: '',
+											actionEmphasis: 'negative',
+										});
+										
+									  });
+									}
+
+									currDisplay = "video";
+									ao_module_setWindowSize(800,800);
+									video = document.getElementById("video");
+									
+								}else if(filetype == "audio"){
+									
+									loadScreen();
+									audio.volume = localStorage.getItem("global_volume");
+									audio.loop = true;
+									audio.pause();
+									audio.currentTime = 0;
+									audio.src = fileinfo[1];
+									//audio.play();
+									
+									var promise = audio.play();
+									if (promise !== undefined) {
+									  promise.then(_ => {
+									  }).catch(error => {
+										audio.muted = true;
+										audio.play();
+										ts('.snackbar').snackbar({
+											content: 'Due to browser restricton, audio can\'t stream to this device',
+											action: '',
+											actionEmphasis: 'negative',
+										});
+										//alert("Error");
+									  });
+									}
+									
+									currDisplay = "audio";
+									ao_module_setWindowSize(395,520);
+								}	
+        				    });
         				}else if (fileinfo[0] == "setVol"){
 							localStorage.setItem("global_volume",fileinfo[1]);
 							if(currDisplay == "audio"){
@@ -139,15 +145,19 @@ function check(){
         					
         				}else if (fileinfo[0] == "volup"){
 							if(currDisplay == "audio"){
+								localStorage.setItem("global_volume",audio.volume + 0.1);
 								audio.volume = audio.volume + 0.1
 							}else if(currDisplay == "video"){
+								localStorage.setItem("global_volume",video.volume + 0.1);
 								video.volume = video.volume + 0.1
 							}
         					
         				}else if (fileinfo[0] == "voldown"){
 							if(currDisplay == "audio"){
+								localStorage.setItem("global_volume",audio.volume - 0.1);
 								audio.volume = audio.volume - 0.1
 							}else if(currDisplay == "video"){
+								localStorage.setItem("global_volume",video.volume - 0.1);
 								video.volume = video.volume - 0.1
 							}
 								  
@@ -229,6 +239,8 @@ function loadScreen(){
 </div>
 <div class="white bottom" align="right">
 	<div class="ts breadcrumb">
+		<a class="white section" href="mobileremote.php">Toggle P-Remote</a>
+		<div class="divider"> / </div>
 		<a class="white section" href="remote.php">Toggle Remote</a>
 		<div class="divider"> / </div>
 		<a class="white section" href="">Refresh</a>
