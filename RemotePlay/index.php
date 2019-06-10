@@ -116,12 +116,13 @@ function check(){
 									audio.src = fileinfo[1];
 									//audio.play();
 									
+									
 									var promise = audio.play();
 									if (promise !== undefined) {
 									  promise.then(_ => {
 									  }).catch(error => {
-										audio.muted = true;
-										audio.play();
+										//audio.muted = true;
+										//audio.play();
 										ts('.snackbar').snackbar({
 											content: 'Due to browser restricton, audio can\'t stream to this device',
 											action: '',
