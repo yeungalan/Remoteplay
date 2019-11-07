@@ -44,11 +44,23 @@ if (isset($_GET['comm']) && isset($_GET['rid'])){
     <div class="row">
         <div class="sixteen wide column">
 			<p class="white">Target RemotePlay ID</p>
+				<div class="ts dropdown" width="100%">
+					<div class="text">
+						<div class="ts fluid input">
+							<input type="text" style="border-top-right-radius: 0px;border-bottom-right-radius: 0px;background-color: black;color: white!important;border-color: white!important" placeholder="RemotePlay ID" id="remoteID_tb">
+						</div>
+					</div>
+					<i class="caret down icon" style="border: 1px solid white;padding: .78571em 1em;border-radius: .28571rem;background-size: .8em;background-repeat: no-repeat;padding-right: calc(1em + .8em * 1.2);line-height: 1.4385em;border-left: 0px;height: 39.97px;right: 3.2%;border-top-left-radius: 0px;border-bottom-left-radius: 0px;top: 0.4vh;"></i>
+					<div class="menu" style="background-color: black !important;"  id="n_remoteID">
+					</div>
+				</div>
+			<!--
 			<div class="ts basic mini fluid input">
 				<select class="ts basic dropdown" id="remoteID" style="background: black;color: white;width: 100%">
 					<option>Scanning...</option>
 				</select>
 			</div>
+			-->
 		</div>
     </div>
 	<div class="row">
@@ -120,16 +132,52 @@ if (isset($_GET['comm']) && isset($_GET['rid'])){
 /* end */
 
 var rid = "";
-ao_module_setWindowSize(347,560);
+$(document).ready(function(){
+	ao_module_setWindowSize(1000,340);
+	ts('.ts.dropdown:not(.basic)').dropdown();
+	$(".ts.fluid.input").click(function(e) {
+		e.stopPropagation();
+	});
+	var h = $(".ts.fluid.input").height();
+	$(".caret.down.icon").attr("style",$(".caret.down.icon").attr("style").replace("39.97",h));
+	var previousRemoteID = ao_module_getStorage("remoteplay","remoteID");
+	$.get("opr.php?opr=scanalive",function(data){
+		var obj = JSON.parse(data);
+		$("#n_remoteID").html("");
+		$("#n_remoteID").append($('<div class="item" style="color: white!important;"></div>').attr("value", "").text("Not selected"));
+		$.each( obj, function( key, value ) {
+			$("#n_remoteID").append($('<div class="item" style="color: white!important;"></div>').attr("value", value).text(value));
+		});
+		$("#n_remoteID").val("");
+		/*
+		if (previousRemoteID !== undefined && $(".item[value='" + previousRemoteID + "']").length > 0){
+			$("#remoteID_tb").val(previousRemoteID);
+			rid = previousRemoteID;
+		}
+		*/
+		$("#remoteID_tb").val(previousRemoteID);
+		$("#n_remoteID .item").on("click",function(){
+			//console.log($(this).attr("value"));
+			$("#remoteID_tb").val($(this).attr("value"));
+			ao_module_saveStorage("remoteplay","remoteID",$(this).attr("value"));
+			rid = $(this).attr("value");
+		});
+		$("#remoteID_tb").on("change",function(){
+			ao_module_saveStorage("remoteplay","remoteID",$(this).val());
+			rid = $(this).val();
+		});
+	});
+});
+
 $("#vol").on("change",function(){
 	sendCommand("setVol",$(this).val());
 });
-
+/*
 $("#remoteID").on("change",function(){
 	ao_module_saveStorage("remoteplay","remoteID",$(this).val());
 	rid = $(this).val();
 });
-
+*/
 function play(){
 	sendCommand("play","");
 }
@@ -208,6 +256,7 @@ function sendCommand(comm,value){
 	});
 }
 
+/*
 $(document).ready(function(){
 	var previousRemoteID = ao_module_getStorage("remoteplay","remoteID");
 	$.get("opr.php?opr=scanalive",function(data){
@@ -224,6 +273,7 @@ $(document).ready(function(){
 		}
 	});
 });
+*/
 </script>
 </body>
 </html>
