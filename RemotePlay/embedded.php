@@ -36,9 +36,16 @@ function check_file_is_audio( $tmp )
 
 //Check if the file exists and it is audio file.
 $valid = true;
+$external = false;
 if(isset($_GET['filepath']) && file_exists($_GET['filepath'])){
 	//This file exists.
 	$filename = $_GET['filepath'];
+	$filepath = $filename;
+}else if (isset($_GET['filepath']) && strpos($_GET['filepath'],"extDiskAccess.php?file=") !== false){
+	//This file is imported from external storage.
+	$external = true;
+	$filename = $_GET['filepath'];
+	$filepath = array_pop(explode("=",$_GET['filepath']));
 }else{
 	$valid = false;
 }
@@ -48,7 +55,7 @@ if (isset($_GET['filename'])){
 }else{
 	$displayName =  basename($filename);
 }
-if (!check_file_is_audio($_GET['filepath'])){
+if (!check_file_is_audio($filepath)){
 	//This is not an audio file
 	$valid = false;
 }
@@ -87,11 +94,16 @@ if(!$valid){
 	</h5>
 	<hr>
 	<p class="white">Target RemotePlay ID</p>
-	<div class="ts basic mini fluid input">
-		<select class="ts basic dropdown" id="remoteID" style="background: black;color: white;width: 100%">
-			<option>Scanning...</option>
-		</select>
-	</div>
+	<div class="ts floating dropdown labeled icon button" style="padding: 0px;padding-right: calc(0.22em + 1em + .78571em * 2) !important;padding-left: 0em !important;background-color: black;color:white;height: 39.97px" width="100%">
+					<div class="text">
+						<div class="ts fluid input" style="right 1px;bottom:1px">
+							<input type="text" style="border-top-right-radius: 0px;border-bottom-right-radius: 0px;background-color: black;color: white!important;border-color: white!important;border-right:0px" placeholder="RemotePlay ID" id="remoteID_tb">
+						</div>
+					</div>
+					<i class="caret down icon" style="left: auto !important;right: 0em !important;background-color: black;"></i>
+					<div class="menu" style="background-color: black !important;"  id="n_remoteID">
+					</div>
+				</div>
 	<br><p class="white">Filename</p>
 	<div class="ts basic mini fluid input">
 		<input id="filename" class="white" type="text" value="<?php echo $displayName;?>" readonly=true>
@@ -106,31 +118,59 @@ if(!$valid){
 	</div>
 </div>
 	<script>
-	$(document).ready(function(){
-		$.get("opr.php?opr=scanalive",function(data){
-				var obj = JSON.parse(data);
-				$("#remoteID").html("");
-				$("#remoteID").append($("<option></option>").attr("value", "").text("Not selected"));
-				$.each( obj, function( key, value ) {
-					$("#remoteID").append($("<option></option>").attr("value", value).text(value));
-				});
-				$("#remoteID").val("");
-				var previousRemoteID = ao_module_getStorage("remoteplay","remoteID");
-				if (previousRemoteID !== undefined && $("#remoteID option[value='" + previousRemoteID + "']").length > 0){
-					$("#remoteID").val(previousRemoteID);
-				}
-			});
-	});
 	var rid = $("#rid").text().trim();
 	ao_module_setWindowSize(385,420);
+	
+$(document).ready(function(){
+	ts('.ts.dropdown:not(.basic)').dropdown();
+	$(".ts.fluid.input").click(function(e) {
+		e.stopPropagation();
+	});
+	var h = $(".ts.fluid.input").height();
+	$(".ts.floating.dropdown.labeled.icon.button").attr("style",$(".ts.floating.dropdown.labeled.icon.button").attr("style").replace("39.97",h));
+	//$(".caret.down.icon").attr("style",$(".caret.down.icon").attr("style").replace("39.97",h));
+	update();
+});
+	
+	setInterval(update, 10000);
+function update(){
+		var previousRemoteID = ao_module_getStorage("remoteplay","remoteID");
+	$.get("opr.php?opr=scanalive",function(data){
+		var obj = JSON.parse(data);
+		$("#n_remoteID").html("");
+		$("#n_remoteID").append($('<div class="item" style="color: white!important;"></div>').attr("value", "").text("Not selected"));
+		$.each( obj, function( key, value ) {
+			$("#n_remoteID").append($('<div class="item" style="color: white!important;"></div>').attr("value", value).text(value));
+		});
+		$("#n_remoteID").val("");
+		/*
+		if (previousRemoteID !== undefined && $(".item[value='" + previousRemoteID + "']").length > 0){
+			$("#remoteID_tb").val(previousRemoteID);
+			rid = previousRemoteID;
+		}
+		*/
+		$("#remoteID_tb").val(previousRemoteID);
+		$("#n_remoteID .item").on("click",function(){
+			//console.log($(this).attr("value"));
+			$("#remoteID_tb").val($(this).attr("value"));
+			ao_module_saveStorage("remoteplay","remoteID",$(this).attr("value"));
+			rid = $(this).attr("value");
+		});
+		$("#remoteID_tb").on("change",function(){
+			ao_module_saveStorage("remoteplay","remoteID",$(this).val());
+			rid = $(this).val();
+		});
+	});
+}
+
 	ao_module_setWindowTitle("Send to RemotePlay");
 	ao_module_setWindowIcon("feed");
 	
-	$("#remoteID").on("change",function(){
+	$("#remoteID_tb").on("change",function(){
 		ao_module_saveStorage("remoteplay","remoteID",$(this).val());
 	});
 	
-	$("#remoteID").on("keydown",function(e){
+	$("#remoteID_tb").on("keydown",function(e){
 		if (e.keyCode == 13){
 			//Enter is pressed
 			createRequest();
@@ -139,7 +179,7 @@ if(!$valid){
 	
 	function createRequest(){
 		var filepath = $("#filepath").val();
-		var remoteID = $("#remoteID").val();
+		var remoteID = $("#remoteID_tb").val();
 		$.get("embedded.php?fp=" + filepath + "&rid=" + remoteID,function(data){
 			if (data.includes("ERROR") == false){
 				ao_module_close();
