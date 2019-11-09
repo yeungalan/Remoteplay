@@ -18,7 +18,7 @@ function check_file_is_audio( $tmp )
         'audio/mid', 'audio/x-aiff', 'audio/x-flac', 'audio/x-mpequrl','audio/midi', 'audio/x-mid', 
         'audio/x-midi','audio/wav','audio/x-wav','audio/xm','audio/x-aac','audio/basic',
         'audio/flac','audio/mp4','audio/x-matroska','audio/ogg','audio/s3m','audio/x-ms-wax',
-        'audio/xm', 'image/jpeg', 'video/mp4'
+        'audio/xm', 'image/jpeg', 'video/mp4', 'image/png', 'image/svg'
     );
     
     // check REAL MIME type
