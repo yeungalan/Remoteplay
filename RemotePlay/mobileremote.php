@@ -44,8 +44,8 @@ if (isset($_GET['comm']) && isset($_GET['rid'])){
     <div class="row">
         <div class="sixteen wide column">
 			<p class="white">Target RemotePlay ID</p>
-				<div class="ts floating dropdown labeled icon button" style="padding: 0px;padding-right: calc(0.22em + 1em + .78571em * 2) !important;padding-left: 0em !important;background-color: black;color:white;height: 39.97px" width="100%">
-					<div class="text">
+				<div class="ts floating dropdown labeled icon button" style="padding: 0px;padding-right: calc(0.22em + 1em + .78571em * 2) !important;padding-left: 0em !important;background-color: black;color:white;height: 39.97px;width:100%">
+					<div class="text" style="width:100%">
 						<div class="ts fluid input" style="right 1px;bottom:1px">
 							<input type="text" style="border-top-right-radius: 0px;border-bottom-right-radius: 0px;background-color: black;color: white!important;border-color: white!important;border-right:0px" placeholder="RemotePlay ID" id="remoteID_tb">
 						</div>

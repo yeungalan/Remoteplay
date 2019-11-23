@@ -9,8 +9,14 @@ if (isset($_GET['opr'])){
 		echo json_encode($output);
 		
 	}else if($_GET["opr"] == "mime"){
-		
-		echo explode("/",mime_content_type($_GET["file"]))[0];
+		$file = $_GET["file"];
+		if (!file_exists($_GET["file"])){
+			//Check if it is a path with extDiskAccess.php
+			if (strpos($_GET["file"],"extDiskAccess.php?file=") !== false){
+				$file = array_pop(explode("=",$_GET['file']));
+			}
+		}
+		echo explode("/",mime_content_type($file))[0];
 		
 	}else{
 		

@@ -39,6 +39,7 @@ $rid = rand(1000,9999);
 ?>
 <body>
 <br>
+
 </body>
 <script>
 
@@ -75,6 +76,11 @@ function check(){
 							$.get("opr.php?opr=mime&file=" + fileinfo[1],function(filetype){
 								audio.pause();
 								audio.currentTime = 0;
+								//Check if the file path is from external storage. If yes, append extDiskAccess into the path for web client access
+								if (fileinfo[1].includes("/media/") && !fileinfo[1].includes("extDiskAccess.php?file=")){
+								    fileinfo[1]  = "../SystemAOB/functions/extDiskAccess.php?file=" + fileinfo[1];
+								}
+								
 								//open the given filepath
 								if(filetype == "image"){
 									
@@ -84,7 +90,7 @@ function check(){
 									
 								}else if(filetype == "video"){
 									
-									$("body").html('<video autoplay loop id="video" style="height: 100%;display: block;margin-left: auto;margin-right: auto;width: 100%;"><source src="' + fileinfo[1] + '" type="video/mp4"></video><div class="ts snackbar"><div class="content"></div></div>');
+									$("body").html('<video autoplay loop id="video" style="height: 100%;display: block;margin-left: auto;margin-right: auto;width: 100%;"><source src="' + fileinfo[1] + '" type="video/mp4"></video><div class="ts snackbar"><div class="content"></div><a class="action"></a></div>');
 									video = document.querySelector('video');
 									var promise = video.play();
 
@@ -94,9 +100,12 @@ function check(){
 										video.muted = true;
 										video.play();
 										ts('.snackbar').snackbar({
-											content: 'Due to browser restricton, this video has been muted.',
-											action: '',
+											content: 'Due to browser policy, please click on unmute button.',
+											action: 'Unmute',
 											actionEmphasis: 'negative',
+											onAction: () => {
+												unmute();
+											}
 										});
 										
 									  });
@@ -116,21 +125,24 @@ function check(){
 									audio.src = fileinfo[1];
 									//audio.play();
 									
-									
 									var promise = audio.play();
+									
 									if (promise !== undefined) {
 									  promise.then(_ => {
 									  }).catch(error => {
-										//audio.muted = true;
-										//audio.play();
+										audio.muted = true;
+										audio.play();
 										ts('.snackbar').snackbar({
-											content: 'Due to browser restricton, audio can\'t stream to this device',
-											action: '',
+											content: 'Due to browser policy, please click on unmute button.',
+											action: 'Unmute',
 											actionEmphasis: 'negative',
+											onAction: () => {
+												unmute();
+											}
 										});
-										//alert("Error");
 									  });
 									}
+									
 									
 									currDisplay = "audio";
 									ao_module_setWindowSize(395,520);
@@ -222,6 +234,15 @@ function check(){
 	});
 }
 
+var video=document.getElementById("video") ;   
+
+function unmute(){
+    if(video.muted){
+        video.muted = false;
+		video.volume = 0.5;
+    }
+}
+
 
 function loadScreen(){
 	$("body").html(`
@@ -251,7 +272,7 @@ function loadScreen(){
 		<a class="white active section dirModeOnly" href="../">Exit</a>
 	</div>
 </div>
-<div class="ts snackbar"><div class="content"></div></div>
+<div class="ts snackbar"><div class="content"></div><a class="action"></a></div>
 <div id="rid" style="display:none;"><?php echo $rid;?></div>
 `);
 }
